@@ -5,11 +5,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
+
 @Setter
 @Getter
 @Builder
 @ToString
-public class AnimePutRequest {
+public class ProducerPutRequest {
     private Long id;
     private String name;
+
 }
