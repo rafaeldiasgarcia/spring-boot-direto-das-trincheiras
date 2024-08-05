@@ -127,7 +127,7 @@ class ProducerServiceTest {
         BDDMockito.when(repository.findById(producerToDelete.getId())).thenReturn(Optional.empty());
 
         Assertions.assertThatException()
-                .isThrownBy(() ->  service.delete(producerToDelete.getId()))
+                .isThrownBy(() -> service.delete(producerToDelete.getId()))
                 .isInstanceOf(ResponseStatusException.class);
     }
 
@@ -141,7 +141,7 @@ class ProducerServiceTest {
         BDDMockito.when(repository.findById(producerToUpdate.getId())).thenReturn(Optional.of(producerToUpdate));
         BDDMockito.doNothing().when(repository).update(producerToUpdate);
 
-        Assertions.assertThatNoException().isThrownBy(() ->  service.update(producerToUpdate));
+        Assertions.assertThatNoException().isThrownBy(() -> service.update(producerToUpdate));
     }
 
     @Test
@@ -153,7 +153,8 @@ class ProducerServiceTest {
         BDDMockito.when(repository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.empty());
 
         Assertions.assertThatException()
-                .isThrownBy(() ->  service.update(producerToUpdate))
-                .isInstanceOf(ResponseStatusException.class);    }
+                .isThrownBy(() -> service.update(producerToUpdate))
+                .isInstanceOf(ResponseStatusException.class);
+    }
 
 }
