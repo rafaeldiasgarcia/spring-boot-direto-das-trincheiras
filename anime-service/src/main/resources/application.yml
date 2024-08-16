@@ -11,6 +11,7 @@ logging:
 server:
   servlet:
     context-path: /
+
   error:
     include-stacktrace: on_param
   tomcat:
@@ -21,5 +22,3 @@ database:
   url: ${DB_URL:localhost}:${DB_PORT:3306}
   username: ${LOCAL_USERNAME:william}
   password: ${LOCAL_PASSWORD:devdojo}
-
-
