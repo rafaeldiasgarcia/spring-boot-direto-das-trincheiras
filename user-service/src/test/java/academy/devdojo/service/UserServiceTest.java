@@ -91,4 +91,17 @@ class UserServiceTest {
                 .isThrownBy(() -> service.findByIdOrThrowNotFound(expectedUser.getId()))
                 .isInstanceOf(ResponseStatusException.class);
     }
+
+    @Test
+    @DisplayName("save creates an user")
+    @Order(6)
+    void save_CreatesUser_WhenSuccessful() {
+        var userToSave = userUtils.newUserToSave();
+
+        BDDMockito.when(repository.save(userToSave)).thenReturn(userToSave);
+
+        var savedProducer = service.save(userToSave);
+
+        Assertions.assertThat(savedProducer).isEqualTo(userToSave).hasNoNullFieldsOrProperties();
+    }
 }
