@@ -57,4 +57,13 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userPostResponse);
     }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+        log.debug("Request to delete user by id: {}", id);
+
+        service.delete(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }
