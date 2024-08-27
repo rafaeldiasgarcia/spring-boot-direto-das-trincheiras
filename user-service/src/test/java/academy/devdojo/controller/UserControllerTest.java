@@ -222,7 +222,7 @@ class UserControllerTest {
     @ParameterizedTest
     @MethodSource("putUserBadRequestSource")
     @DisplayName("PUT v1/users returns bad request when fields are invalid")
-    @Order(11)
+    @Order(12)
     void update_ReturnsBadRequest_WhenFieldsAreInvalid(String fileName, List<String> errors) throws Exception {
         var request = fileUtils.readResourceFile("user/%s".formatted(fileName));
 
