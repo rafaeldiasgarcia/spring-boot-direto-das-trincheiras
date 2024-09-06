@@ -4,7 +4,6 @@ import academy.devdojo.commons.FileUtils;
 import academy.devdojo.commons.UserUtils;
 import academy.devdojo.domain.User;
 import academy.devdojo.respository.UserData;
-import academy.devdojo.respository.UserHardCodedRepository;
 import academy.devdojo.respository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.*;
@@ -16,7 +15,6 @@ import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,6 +23,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -38,9 +37,7 @@ class UserControllerTest {
     @MockBean
     private UserData userData;
     @MockBean
-    private UserRepository userRepository;
-    @SpyBean
-    private UserHardCodedRepository repository;
+    private UserRepository repository;
     private List<User> userList;
     @Autowired
     private FileUtils fileUtils;
@@ -56,7 +53,7 @@ class UserControllerTest {
     @DisplayName("GET v1/users returns a list with all users when argument is null")
     @Order(1)
     void findAll_ReturnsAllUsers_WhenArgumentIsNull() throws Exception {
-        BDDMockito.when(userRepository.findAll()).thenReturn(userList);
+        BDDMockito.when(repository.findAll()).thenReturn(userList);
         var response = fileUtils.readResourceFile("user/get-user-null-first-name-200.json");
 
         mockMvc.perform(MockMvcRequestBuilders.get(URL))
@@ -69,9 +66,11 @@ class UserControllerTest {
     @DisplayName("GET v1/users?firstName=Toyohisa returns list with found object when first name exists")
     @Order(2)
     void findAll_ReturnsFoundUserInList_WhenFirstNameIsFound() throws Exception {
-        BDDMockito.when(userData.getUsers()).thenReturn(userList);
         var response = fileUtils.readResourceFile("user/get-user-toyohisa-first-name-200.json");
         var firstName = "Toyohisa";
+        var toyohisa = userList.stream().filter(user -> user.getFirstName().equals(firstName)).findFirst().orElse(null);
+
+        BDDMockito.when(repository.findByFirstNameIgnoreCase(firstName)).thenReturn(Collections.singletonList(toyohisa));
 
         mockMvc.perform(MockMvcRequestBuilders.get(URL).param("firstName", firstName))
                 .andDo(MockMvcResultHandlers.print())
@@ -97,9 +96,10 @@ class UserControllerTest {
     @DisplayName("GET v1/users/1 returns an user with given id")
     @Order(4)
     void findById_ReturnsUserById_WhenSuccessful() throws Exception {
-        BDDMockito.when(userData.getUsers()).thenReturn(userList);
         var response = fileUtils.readResourceFile("user/get-user-by-id-200.json");
         var id = 1L;
+        var foundUser = userList.stream().filter(user -> user.getId().equals(id)).findFirst();
+        BDDMockito.when(repository.findById(id)).thenReturn(foundUser);
 
         mockMvc.perform(MockMvcRequestBuilders.get(URL + "/{id}", id))
                 .andDo(MockMvcResultHandlers.print())
@@ -147,8 +147,10 @@ class UserControllerTest {
     @DisplayName("DELETE v1/users/1 removes an user")
     @Order(7)
     void delete_RemoveUser_WhenSuccessful() throws Exception {
-        BDDMockito.when(userData.getUsers()).thenReturn(userList);
         var id = userList.getFirst().getId();
+
+        var foundUser = userList.stream().filter(user -> user.getId().equals(id)).findFirst();
+        BDDMockito.when(repository.findById(id)).thenReturn(foundUser);
 
         mockMvc.perform(MockMvcRequestBuilders.delete(URL + "/{id}", id))
                 .andDo(MockMvcResultHandlers.print())
@@ -161,7 +163,6 @@ class UserControllerTest {
     void delete_ThrowsNotFound_WhenUserIsNotFound() throws Exception {
         BDDMockito.when(userData.getUsers()).thenReturn(userList);
         var response = fileUtils.readResourceFile("user/delete-user-by-id-404.json");
-
         var id = 99L;
 
         mockMvc.perform(MockMvcRequestBuilders.delete(URL + "/{id}", id))
@@ -175,9 +176,11 @@ class UserControllerTest {
     @DisplayName("PUT v1/users updates an user")
     @Order(9)
     void update_UpdatesUser_WhenSuccessful() throws Exception {
-        BDDMockito.when(userData.getUsers()).thenReturn(userList);
-
         var request = fileUtils.readResourceFile("user/put-request-user-200.json");
+        var id = 1L;
+        var foundUser = userList.stream().filter(user -> user.getId().equals(id)).findFirst();
+        BDDMockito.when(repository.findById(id)).thenReturn(foundUser);
+
         mockMvc.perform(MockMvcRequestBuilders
                         .put(URL)
                         .content(request)
