@@ -57,7 +57,6 @@ class AnimeServiceTest {
         BDDMockito.when(repository.findAll(BDDMockito.any(Pageable.class))).thenReturn(pageAnime);
 
         var animesFound = service.findAllPaginated(pageRequest);
-        animesList.remove(1);
         Assertions.assertThat(animesFound).isNotNull().hasSameElementsAs(animesList);
     }
 

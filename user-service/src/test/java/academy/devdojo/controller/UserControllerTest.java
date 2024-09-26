@@ -3,6 +3,8 @@ package academy.devdojo.controller;
 import academy.devdojo.commons.FileUtils;
 import academy.devdojo.commons.UserUtils;
 import academy.devdojo.domain.User;
+import academy.devdojo.respository.ProfileRepository;
+import academy.devdojo.respository.UserProfileRepository;
 import academy.devdojo.respository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.*;
@@ -35,6 +37,10 @@ class UserControllerTest {
     private MockMvc mockMvc;
     @MockBean
     private UserRepository repository;
+    @MockBean
+    private ProfileRepository profileRepository;
+    @MockBean
+    private UserProfileRepository userProfileRepository;
     private List<User> userList;
     @Autowired
     private FileUtils fileUtils;
