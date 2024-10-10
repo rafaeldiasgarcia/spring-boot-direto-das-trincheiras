@@ -1,6 +1,8 @@
 package academy.devdojo.respository;
 
 import academy.devdojo.commons.UserUtils;
+import academy.devdojo.config.TestcontainersConfiguration;
+import academy.devdojo.domain.User;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +11,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.List;
+
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(UserUtils.class)
+@Import({UserUtils.class, TestcontainersConfiguration.class})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 //@Transactional(propagation = Propagation.NOT_SUPPORTED)
 class UserRepositoryTest {
@@ -29,7 +33,7 @@ class UserRepositoryTest {
         var savedUser = repository.save(userToSave);
 
         Assertions.assertThat(savedUser).hasNoNullFieldsOrProperties();
-        Assertions.assertThat(savedUser.getId()).isEqualTo(1L);
+        Assertions.assertThat(savedUser.getId()).isNotNull().isPositive();
     }
 
     @Test
