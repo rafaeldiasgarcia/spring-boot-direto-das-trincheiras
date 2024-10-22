@@ -8,6 +8,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import org.assertj.core.api.Assertions;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -152,104 +153,131 @@ class UserControllerRestAssuredIT extends IntegrationTestConfig {
                 .whenIgnoringPaths("id")
                 .isEqualTo(expectedResponse);
     }
-//
-//    @Test
-//    @DisplayName("GET v1/users/99 throws NotFound 404 when user is not found")
-//    @Order(5)
-//    void findById_ThrowsNotFound_WhenUserIsNotFound() throws Exception {
-//        var response = fileUtils.readResourceFile("user/get-user-by-id-404.json");
-//
-//        var id = 99L;
-//
-//        mockMvc.perform(MockMvcRequestBuilders.get(URL + "/{id}", id))
-//                .andDo(MockMvcResultHandlers.print())
-//                .andExpect(MockMvcResultMatchers.status().isNotFound())
-//                .andExpect(MockMvcResultMatchers.content().json(response));
-//    }
-//
-//    @Test
-//    @DisplayName("POST v1/users creates an user")
-//    @Order(6)
-//    void save_CreatesUser_WhenSuccessful() throws Exception {
-//        var request = fileUtils.readResourceFile("user/post-request-user-200.json");
-//        var response = fileUtils.readResourceFile("user/post-response-user-201.json");
-//        var userSaved = userUtils.newUserSaved();
-//
-//        BDDMockito.when(repository.save(ArgumentMatchers.any())).thenReturn(userSaved);
-//
-//        mockMvc.perform(MockMvcRequestBuilders
-//                        .post(URL)
-//                        .content(request)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                )
-//                .andDo(MockMvcResultHandlers.print())
-//                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-//                .andExpect(MockMvcResultMatchers.status().isCreated())
-//                .andExpect(MockMvcResultMatchers.content().json(response));
-//    }
-//
-//    @Test
-//    @DisplayName("DELETE v1/users/1 removes an user")
-//    @Order(7)
-//    void delete_RemoveUser_WhenSuccessful() throws Exception {
-//        var id = userList.getFirst().getId();
-//
-//        var foundUser = userList.stream().filter(user -> user.getId().equals(id)).findFirst();
-//        BDDMockito.when(repository.findById(id)).thenReturn(foundUser);
-//
-//        mockMvc.perform(MockMvcRequestBuilders.delete(URL + "/{id}", id))
-//                .andDo(MockMvcResultHandlers.print())
-//                .andExpect(MockMvcResultMatchers.status().isNoContent());
-//    }
-//
-//    @Test
-//    @DisplayName("DELETE v1/users/99 throws NotFound when user is not found")
-//    @Order(8)
-//    void delete_ThrowsNotFound_WhenUserIsNotFound() throws Exception {
-//        var response = fileUtils.readResourceFile("user/delete-user-by-id-404.json");
-//        var id = 99L;
-//
-//        mockMvc.perform(MockMvcRequestBuilders.delete(URL + "/{id}", id))
-//                .andDo(MockMvcResultHandlers.print())
-//                .andExpect(MockMvcResultMatchers.status().isNotFound())
-//                .andExpect(MockMvcResultMatchers.content().json(response));
-//
-//    }
-//
-//    @Test
-//    @DisplayName("PUT v1/users updates an user")
-//    @Order(9)
-//    void update_UpdatesUser_WhenSuccessful() throws Exception {
-//        var request = fileUtils.readResourceFile("user/put-request-user-200.json");
-//        var id = 1L;
-//        var foundUser = userList.stream().filter(user -> user.getId().equals(id)).findFirst();
-//        BDDMockito.when(repository.findById(id)).thenReturn(foundUser);
-//
-//        mockMvc.perform(MockMvcRequestBuilders
-//                        .put(URL)
-//                        .content(request)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                )
-//                .andDo(MockMvcResultHandlers.print())
-//                .andExpect(MockMvcResultMatchers.status().isNoContent());
-//    }
-//
-//    @Test
-//    @DisplayName("PUT v1/users throws NotFound when user is not found")
-//    @Order(10)
-//    void update_ThrowsNotFound_WhenUserIsNotFound() throws Exception {
-//        var request = fileUtils.readResourceFile("user/put-request-user-404.json");
-//        var response = fileUtils.readResourceFile("user/put-user-by-id-404.json");
-//
-//        mockMvc.perform(MockMvcRequestBuilders
-//                        .put(URL)
-//                        .content(request)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                )
-//                .andDo(MockMvcResultHandlers.print())
-//                .andExpect(MockMvcResultMatchers.status().isNotFound())
-//                .andExpect(MockMvcResultMatchers.content().json(response));
-//    }
+
+    @Test
+    @DisplayName("GET v1/users/99 throws NotFound 404 when user is not found")
+    @Order(5)
+    void findById_ThrowsNotFound_WhenUserIsNotFound() throws Exception {
+        var expectedResponse = fileUtils.readResourceFile("user/get-user-by-id-404.json");
+
+        var id = 99L;
+
+        RestAssured.given()
+                .contentType(ContentType.JSON).accept(ContentType.JSON)
+                .when()
+                .pathParam("id", id)
+                .get(URL+"/{id}")
+                .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .body(Matchers.equalTo(expectedResponse))
+                .log().all();
+    }
+
+    @Test
+    @DisplayName("POST v1/users creates an user")
+    @Sql(value = "/sql/user/clean_users.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    @Order(6)
+    void save_CreatesUser_WhenSuccessful() throws Exception {
+        var request = fileUtils.readResourceFile("user/post-request-user-200.json");
+        var expectedResponse = fileUtils.readResourceFile("user/post-response-user-201.json");
+
+        var response = RestAssured.given()
+                .contentType(ContentType.JSON).accept(ContentType.JSON)
+                .when()
+                .body(request)
+                .post(URL)
+                .then()
+                .statusCode(HttpStatus.CREATED.value())
+                .log().all()
+                .extract().response().body().asString();
+
+        JsonAssertions.assertThatJson(response)
+                .node("id")
+                .asNumber()
+                .isPositive();
+
+        JsonAssertions.assertThatJson(response)
+                .whenIgnoringPaths("id")
+                .isEqualTo(expectedResponse);
+    }
+
+    @Test
+    @DisplayName("DELETE v1/users/1 removes an user")
+    @Sql(value = "/sql/user/init_one_user.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = "/sql/user/clean_users.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    @Order(7)
+    void delete_RemoveUser_WhenSuccessful() throws Exception {
+        var id = repository.findAll().getFirst().getId();
+
+        RestAssured.given()
+                .contentType(ContentType.JSON).accept(ContentType.JSON)
+                .when()
+                .pathParam("id", id)
+                .delete(URL+"/{id}")
+                .then()
+                .statusCode(HttpStatus.NO_CONTENT.value())
+                .log().all();
+    }
+
+    @Test
+    @DisplayName("DELETE v1/users/99 throws NotFound when user is not found")
+    @Order(8)
+    void delete_ThrowsNotFound_WhenUserIsNotFound() throws Exception {
+        var expectedResponse = fileUtils.readResourceFile("user/delete-user-by-id-404.json");
+        var id = 99L;
+
+        RestAssured.given()
+                .contentType(ContentType.JSON).accept(ContentType.JSON)
+                .when()
+                .pathParam("id", id)
+                .delete(URL+"/{id}")
+                .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .body(Matchers.equalTo(expectedResponse))
+                .log().all();
+
+    }
+
+    @Test
+    @DisplayName("PUT v1/users updates an user")
+    @Sql(value = "/sql/user/init_one_user.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = "/sql/user/clean_users.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    @Order(9)
+    void update_UpdatesUser_WhenSuccessful() throws Exception {
+        var request = fileUtils.readResourceFile("user/put-request-user-200.json");
+        var users = repository.findByFirstNameIgnoreCase("Yusuke");
+
+        Assertions.assertThat(users).hasSize(1);
+        request = request.replace("1", users.getFirst().getId().toString());
+
+        RestAssured.given()
+                .contentType(ContentType.JSON).accept(ContentType.JSON)
+                .when()
+                .body(request)
+                .put(URL)
+                .then()
+                .statusCode(HttpStatus.NO_CONTENT.value())
+                .log().all();
+
+    }
+
+    @Test
+    @DisplayName("PUT v1/users throws NotFound when user is not found")
+    @Order(10)
+    void update_ThrowsNotFound_WhenUserIsNotFound() throws Exception {
+        var request = fileUtils.readResourceFile("user/put-request-user-404.json");
+        var expectedResponse = fileUtils.readResourceFile("user/put-user-by-id-404.json");
+
+        RestAssured.given()
+                .contentType(ContentType.JSON).accept(ContentType.JSON)
+                .when()
+                .body(request)
+                .put(URL)
+                .then()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .body(Matchers.equalTo(expectedResponse))
+                .log().all();
+    }
 //
 //    @ParameterizedTest
 //    @MethodSource("postUserBadRequestSource")
