@@ -3,13 +3,10 @@ package academy.devdojo.service;
 import academy.devdojo.domain.User;
 import academy.devdojo.exception.EmailAlreadyExistsException;
 import academy.devdojo.exception.NotFoundException;
+import academy.devdojo.mapper.UserMapper;
 import academy.devdojo.respository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -17,6 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository repository;
+    private final UserMapper mapper;
 
     public List<User> findAll(String firstName) {
         return firstName == null ? repository.findAll() : repository.findByFirstNameIgnoreCase(firstName);
@@ -27,7 +25,7 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("User not Found"));
     }
 
-//    @Transactional(rollbackFor = Exception.class)
+    //    @Transactional(rollbackFor = Exception.class)
     public User save(User user) {
         assertEmailDoesNotExist(user.getEmail());
         return repository.save(user);
@@ -39,9 +37,12 @@ public class UserService {
     }
 
     public void update(User userToUpdate) {
-        assertUserExists(userToUpdate.getId());
         assertEmailDoesNotExist(userToUpdate.getEmail(), userToUpdate.getId());
-        repository.save(userToUpdate);
+        var savedUser = findByIdOrThrowNotFound(userToUpdate.getId());
+
+        var userWithPasswordAndRoles = mapper.toUserWithPasswordAndRoles(userToUpdate, userToUpdate.getPassword(), savedUser);
+
+        repository.save(userWithPasswordAndRoles);
     }
 
     public void assertUserExists(Long id) {
