@@ -1,5 +1,10 @@
 package academy.devdojo.producer;
 
+import academy.devdojo.api.ProducerControllerApi;
+import academy.devdojo.dto.ProducerGetResponse;
+import academy.devdojo.dto.ProducerPostRequest;
+import academy.devdojo.dto.ProducerPostResponse;
+import academy.devdojo.dto.ProducerPutRequest;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +22,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @SecurityRequirement(name = "basicAuth")
-public class ProducerController {
+public class ProducerController implements ProducerControllerApi {
     private final ProducerMapper mapper;
 
     private final ProducerService service;
@@ -43,10 +48,10 @@ public class ProducerController {
         return ResponseEntity.ok(producerGetResponse);
     }
 
+
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE,
             headers = "x-api-key")
-    public ResponseEntity<ProducerPostResponse> saveProducer(@RequestBody @Valid ProducerPostRequest producerPostRequest, @RequestHeader HttpHeaders headers) {
-        log.info("{}", headers);
+    public ResponseEntity<ProducerPostResponse> saveProducer(@RequestBody @Valid ProducerPostRequest producerPostRequest) {
         var producer = mapper.toProducer(producerPostRequest);
 
         var producerSaved = service.save(producer);
