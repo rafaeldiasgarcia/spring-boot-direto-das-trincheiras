@@ -1,21 +1,32 @@
 package academy.devdojo.anime;
 
 import academy.devdojo.api.AnimeControllerApi;
-import academy.devdojo.dto.*;
+import academy.devdojo.dto.AnimeGetResponse;
+import academy.devdojo.dto.AnimePostRequest;
+import academy.devdojo.dto.AnimePostResponse;
+import academy.devdojo.dto.AnimePutRequest;
+import academy.devdojo.dto.PageAnimeGetResponse;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("v1/animes")
@@ -23,77 +34,82 @@ import java.util.List;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "basicAuth")
 public class AnimeController implements AnimeControllerApi {
-    private final AnimeMapper mapper;
-    private final AnimeService service;
 
-    @GetMapping
-    public ResponseEntity<List<AnimeGetResponse>> findAllAnimes(@RequestParam(required = false) String name) {
-        log.debug("Request received to list all animes, param name '{}'", name);
+  private final AnimeMapper mapper;
+  private final AnimeService service;
 
-        var animes = service.findAll(name);
+  @GetMapping
+  public ResponseEntity<List<AnimeGetResponse>> findAllAnimes(@RequestParam(required = false) String name) {
+    log.debug("Request received to list all animes, param name '{}'", name);
 
-        var animeGetResponses = mapper.toAnimeGetResponseList(animes);
+    var animes = service.findAll(name);
 
-        return ResponseEntity.ok(animeGetResponses);
-    }
+    var animeGetResponses = mapper.toAnimeGetResponseList(animes);
 
-    @Override
-    @GetMapping("/paginated")
-    public ResponseEntity<PageAnimeGetResponse> findAllAnimesPaginated(
-            @Min(0) @Parameter(name = "page", description = "Zero-based page index (0..N)", in = ParameterIn.QUERY) @Valid @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
-            @Min(1) @Parameter(name = "size", description = "The size of the page to be returned", in = ParameterIn.QUERY) @Valid @RequestParam(value = "size", required = false, defaultValue = "20") Integer size,
-            @Parameter(name = "sort", description = "Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.", in = ParameterIn.QUERY) @Valid @RequestParam(value = "sort", required = false) List<String> sort,
-            @ParameterObject final Pageable pageable
-    ) {
-        log.debug("Request received to list all animes paginated");
+    return ResponseEntity.ok(animeGetResponses);
+  }
 
-        var jpaPageAnimeGetResponse = service.findAllPaginated(pageable);
-        var pageAnimeGetResponse = mapper.toPageAnimeGetResponse(jpaPageAnimeGetResponse);
+  @Override
+  @GetMapping("/paginated")
+  public ResponseEntity<PageAnimeGetResponse> findAllAnimesPaginated(
+      @Min(0) @Parameter(name = "page", description = "Zero-based page index (0..N)",
+          in = ParameterIn.QUERY) @Valid @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
+      @Min(1) @Parameter(name = "size", description = "The size of the page to be returned",
+          in = ParameterIn.QUERY) @Valid @RequestParam(value = "size", required = false, defaultValue = "20") Integer size,
+      @Parameter(name = "sort", description = "Sorting criteria in the format: property,(asc|desc)."
+          + " Default sort order is ascending. Multiple sort criteria are supported.",
+          in = ParameterIn.QUERY) @Valid @RequestParam(value = "sort", required = false) List<String> sort,
+      @ParameterObject final Pageable pageable
+  ) {
+    log.debug("Request received to list all animes paginated");
 
-        return ResponseEntity.ok(pageAnimeGetResponse);
-    }
+    var jpaPageAnimeGetResponse = service.findAllPaginated(pageable);
+    var pageAnimeGetResponse = mapper.toPageAnimeGetResponse(jpaPageAnimeGetResponse);
 
-    @GetMapping("{id}")
-    public ResponseEntity<AnimeGetResponse> findByAnimeId(@PathVariable Long id) {
-        log.debug("Request to find anime by id: {}", id);
+    return ResponseEntity.ok(pageAnimeGetResponse);
+  }
 
-        var anime = service.findByIdOrThrowNotFound(id);
+  @GetMapping("{id}")
+  public ResponseEntity<AnimeGetResponse> findByAnimeId(@PathVariable Long id) {
+    log.debug("Request to find anime by id: {}", id);
 
-        var animeGetResponse = mapper.toAnimeGetResponse(anime);
+    var anime = service.findByIdOrThrowNotFound(id);
 
-        return ResponseEntity.ok(animeGetResponse);
-    }
+    var animeGetResponse = mapper.toAnimeGetResponse(anime);
 
-    @PostMapping
-    public ResponseEntity<AnimePostResponse> saveAnime(@RequestBody @Valid AnimePostRequest request) {
-        log.debug("Request to save anime : {}", request);
-        var anime = mapper.toAnime(request);
+    return ResponseEntity.ok(animeGetResponse);
+  }
 
-        var animeSaved = service.save(anime);
+  @PostMapping
+  public ResponseEntity<AnimePostResponse> saveAnime(@RequestBody @Valid AnimePostRequest request) {
+    log.debug("Request to save anime : {}", request);
+    var anime = mapper.toAnime(request);
 
-        var animeGetResponse = mapper.toAnimePostResponse(animeSaved);
+    var animeSaved = service.save(anime);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(animeGetResponse);
-    }
+    var animeGetResponse = mapper.toAnimePostResponse(animeSaved);
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<Void> deleteAnimeById(@PathVariable Long id) {
-        log.debug("Request to delete anime by id: {}", id);
+    return ResponseEntity.status(HttpStatus.CREATED).body(animeGetResponse);
+  }
 
-        service.delete(id);
+  @DeleteMapping("{id}")
+  public ResponseEntity<Void> deleteAnimeById(@PathVariable Long id) {
+    log.debug("Request to delete anime by id: {}", id);
 
-        return ResponseEntity.noContent().build();
-    }
+    service.delete(id);
 
-    @PutMapping
-    public ResponseEntity<Void> updateAnime(@RequestBody @Valid AnimePutRequest request) {
-        log.debug("Request to update anime {}", request);
+    return ResponseEntity.noContent().build();
+  }
 
-        var animeToUpdate = mapper.toAnime(request);
+  @PutMapping
+  public ResponseEntity<Void> updateAnime(@RequestBody @Valid AnimePutRequest request) {
+    log.debug("Request to update anime {}", request);
 
-        service.update(animeToUpdate);
+    var animeToUpdate = mapper.toAnime(request);
 
-        return ResponseEntity.noContent().build();
-    }
+    service.update(animeToUpdate);
+
+    return ResponseEntity.noContent().build();
+  }
 
 }
