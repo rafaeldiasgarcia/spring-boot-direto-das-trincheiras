@@ -77,7 +77,7 @@ public class UserController {
               content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = DefaultErrorMessage.class))
           )
       })
-  public ResponseEntity<UserGetResponse> findById(@PathVariable Long id) {π
+  public ResponseEntity<UserGetResponse> findById(@PathVariable Long id) {
     log.debug("Request to find user by id: {}", id);
 
     var user = service.findByIdOrThrowNotFound(id);
