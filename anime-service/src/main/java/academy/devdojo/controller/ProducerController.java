@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -21,19 +22,30 @@ public class ProducerController {
     private static final ProducerMapper MAPPER = ProducerMapper.INSTANCE;
 
     @GetMapping
-    public List<Producer> listAll(@RequestParam(required = false) String name) {
-        var producers = Producer.getProducers();
-        if (name == null) return producers;
+    public ResponseEntity<List<ProducerGetResponse>> listAll(@RequestParam(required = false) String name) {
+        log.debug("Request received to list all producers, param name '{}'", name);
+        var producerGetResponseList = MAPPER.toProducerGetResponseList(Producer.getProducers());
+        if (name == null) return ResponseEntity.ok(producerGetResponseList);
 
-        return producers.stream().filter(producer -> producer.getName().equalsIgnoreCase(name)).toList();
+        var response = producerGetResponseList.stream()
+                .filter(producer -> producer.getName().equalsIgnoreCase(name))
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("{id}")
-    public Producer findById(@PathVariable Long id) {
-        return Producer.getProducers()
+    public ResponseEntity<ProducerGetResponse> findById(@PathVariable Long id) {
+        log.debug("Request to find producer by id: {}", id);
+
+        var producerGetResponse = Producer.getProducers()
                 .stream()
                 .filter(producer -> producer.getId().equals(id))
-                .findFirst().orElse(null);
+                .findFirst()
+                .map(MAPPER::toProducerGetResponse)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Producer not Found"));
+
+        return ResponseEntity.ok(producerGetResponse);
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -46,6 +58,21 @@ public class ProducerController {
         Producer.getProducers().add(producer);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+        log.debug("Request to delete producer by id: {}", id);
+
+        var producerToDelete = Producer.getProducers()
+                .stream()
+                .filter(producer -> producer.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Producer not Found"));
+
+        Producer.getProducers().remove(producerToDelete);
+
+        return ResponseEntity.noContent().build();
     }
 
 }
