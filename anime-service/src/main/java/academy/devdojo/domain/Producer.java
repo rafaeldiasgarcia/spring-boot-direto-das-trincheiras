@@ -18,6 +18,7 @@ public class Producer {
 
     @EqualsAndHashCode.Include
     private Long id;
+
     @JsonProperty("nmame")
     private String name;
     private LocalDateTime createdAt;
