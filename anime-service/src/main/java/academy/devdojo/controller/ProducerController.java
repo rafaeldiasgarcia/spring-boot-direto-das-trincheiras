@@ -1,10 +1,10 @@
 package academy.devdojo.controller;
 
-import academy.devdojo.domain.Producer;
 import academy.devdojo.mapper.ProducerMapper;
-import academy.devdojo.request.ProducerPutRequest;
 import academy.devdojo.request.ProducerPostRequest;
+import academy.devdojo.request.ProducerPutRequest;
 import academy.devdojo.response.ProducerGetResponse;
+import academy.devdojo.response.ProducerPostResponse;
 import academy.devdojo.service.ProducerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -20,7 +19,6 @@ import java.util.List;
 @RequestMapping("v1/producers")
 @Slf4j
 public class ProducerController {
-
     private static final ProducerMapper MAPPER = ProducerMapper.INSTANCE;
     private ProducerService service;
 
@@ -31,7 +29,6 @@ public class ProducerController {
     @GetMapping
     public ResponseEntity<List<ProducerGetResponse>> listAll(@RequestParam(required = false) String name) {
         log.debug("Request received to list all producers, param name '{}'", name);
-
         var producers = service.findAll(name);
 
         var producerGetResponses = MAPPER.toProducerGetResponseList(producers);
@@ -50,14 +47,15 @@ public class ProducerController {
         return ResponseEntity.ok(producerGetResponse);
     }
 
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, headers = "x-api-key")
-    public ResponseEntity<ProducerGetResponse> save(@RequestBody ProducerPostRequest producerPostRequest, @RequestHeader HttpHeaders headers) {
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE,
+            headers = "x-api-key")
+    public ResponseEntity<ProducerPostResponse> save(@RequestBody ProducerPostRequest producerPostRequest, @RequestHeader HttpHeaders headers) {
         log.info("{}", headers);
         var producer = MAPPER.toProducer(producerPostRequest);
 
         var producerSaved = service.save(producer);
 
-        var producerGetResponse = MAPPER.toProducerGetResponse(producerSaved);
+        var producerGetResponse = MAPPER.toProducerPostResponse(producerSaved);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(producerGetResponse);
     }
@@ -81,5 +79,6 @@ public class ProducerController {
 
         return ResponseEntity.noContent().build();
     }
+
 
 }

@@ -4,6 +4,7 @@ import academy.devdojo.domain.Producer;
 import academy.devdojo.request.ProducerPostRequest;
 import academy.devdojo.request.ProducerPutRequest;
 import academy.devdojo.response.ProducerGetResponse;
+import academy.devdojo.response.ProducerPostResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -13,7 +14,6 @@ import java.util.List;
 
 @Mapper
 public interface ProducerMapper {
-
     ProducerMapper INSTANCE = Mappers.getMapper(ProducerMapper.class);
 
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
@@ -23,6 +23,8 @@ public interface ProducerMapper {
     Producer toProducer(ProducerPutRequest request);
 
     ProducerGetResponse toProducerGetResponse(Producer producer);
+
+    ProducerPostResponse toProducerPostResponse(Producer producer);
 
     List<ProducerGetResponse> toProducerGetResponseList(List<Producer> producers);
 

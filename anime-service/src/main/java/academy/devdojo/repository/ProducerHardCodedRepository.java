@@ -8,52 +8,30 @@ import java.util.List;
 import java.util.Optional;
 
 public class ProducerHardCodedRepository {
-
     private static final List<Producer> PRODUCERS = new ArrayList<>();
 
     static {
-
-        Producer mappa = Producer.builder()
-                .id(1L)
-                .name("Mappa")
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        Producer kyotoAnimation = Producer.builder()
-                .id(2L)
-                .name("Kyoto Animation")
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        Producer madhouse = Producer.builder()
-                .id(3L)
-                .name("Madhouse")
-                .createdAt(LocalDateTime.now())
-                .build();
-
+        var mappa = Producer.builder().id(1L).name("Mappa").createdAt(LocalDateTime.now()).build();
+        var kyotoAnimation = Producer.builder().id(2L).name("Kyoto Animation").createdAt(LocalDateTime.now()).build();
+        var madhouse = Producer.builder().id(3L).name("Madhouse").createdAt(LocalDateTime.now()).build();
         PRODUCERS.addAll(List.of(mappa, kyotoAnimation, madhouse));
     }
 
-    public List<Producer> findAll() {
 
+    public List<Producer> findAll() {
         return PRODUCERS;
     }
 
     public Optional<Producer> findById(Long id) {
-        return PRODUCERS.stream()
-                .filter(producer -> producer.getId().equals(id))
-                .findFirst();
+        return PRODUCERS.stream().filter(producer -> producer.getId().equals(id)).findFirst();
     }
 
     public List<Producer> findByName(String name) {
-        return PRODUCERS.stream()
-                .filter(producer -> producer.getName().equalsIgnoreCase(name))
-                .toList();
+        return PRODUCERS.stream().filter(producer -> producer.getName().equalsIgnoreCase(name)).toList();
     }
 
     public Producer save(Producer producer) {
         PRODUCERS.add(producer);
-
         return producer;
     }
 

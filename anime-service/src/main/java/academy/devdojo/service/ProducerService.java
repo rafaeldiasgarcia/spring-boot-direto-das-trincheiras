@@ -5,7 +5,6 @@ import academy.devdojo.repository.ProducerHardCodedRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.security.ProtectionDomain;
 import java.util.List;
 
 public class ProducerService {
@@ -37,6 +36,6 @@ public class ProducerService {
     public void update(Producer producerToUpdate) {
         var producer = findByIdOrThrowNotFound(producerToUpdate.getId());
         producerToUpdate.setCreatedAt(producer.getCreatedAt());
-        repository.update((producerToUpdate));
+        repository.update(producerToUpdate);
     }
 }
