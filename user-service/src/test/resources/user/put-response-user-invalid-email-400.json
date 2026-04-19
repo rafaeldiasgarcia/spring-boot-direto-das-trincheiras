@@ -1,0 +1,7 @@
+{
+  "timestamp": "2024-10-28T13:29:39.596858+01:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "The e-mail is not valid",
+  "path": "/v1/users"
+}
